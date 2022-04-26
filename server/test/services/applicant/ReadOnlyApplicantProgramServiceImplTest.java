@@ -163,6 +163,73 @@ public class ReadOnlyApplicantProgramServiceImplTest extends ResetPostgres {
   }
 
   @Test
+  public void getAllBlocks_doesNotIncludeRepeatedEntitiesThatAreHidden() {
+    PredicateDefinition predicate =
+        PredicateDefinition.create(
+            PredicateExpressionNode.create(
+                LeafOperationExpressionNode.create(
+                    colorQuestion.getId(),
+                    Scalar.TEXT,
+                    Operator.EQUAL_TO,
+                    PredicateValue.of("blue"))),
+            PredicateAction.HIDE_BLOCK);
+    ProgramDefinition program =
+        ProgramBuilder.newActiveProgram()
+            .withBlock("visibility question")
+            .withRequiredQuestionDefinition(colorQuestion)
+            .withBlock("enumeration - household members")
+            .withPredicate(predicate)
+            .withRequiredQuestion(testQuestionBank.applicantHouseholdMembers())
+            .withRepeatedBlock("repeated - household members name")
+            .withRequiredQuestion(testQuestionBank.applicantHouseholdMemberName())
+            .withAnotherRepeatedBlock("repeated - household members jobs")
+            .withRequiredQuestion(testQuestionBank.applicantHouseholdMemberJobs())
+            .withRepeatedBlock("deeply repeated - household members number days worked")
+            .withRequiredQuestion(testQuestionBank.applicantHouseholdMemberDaysWorked())
+            .buildDefinition();
+
+    // Answer predicate question so that the block should be visible
+    answerColorQuestion(program.id(), "red");
+
+    // Add repeated entities to applicant data
+    Path enumerationPath =
+        ApplicantData.APPLICANT_PATH.join(
+            testQuestionBank
+                .applicantHouseholdMembers()
+                .getQuestionDefinition()
+                .getQuestionPathSegment());
+    applicantData.putString(enumerationPath.atIndex(0).join(Scalar.ENTITY_NAME), "first entity");
+    applicantData.putString(enumerationPath.atIndex(1).join(Scalar.ENTITY_NAME), "second entity");
+    applicantData.putString(enumerationPath.atIndex(2).join(Scalar.ENTITY_NAME), "third entity");
+    Path deepEnumerationPath =
+        enumerationPath
+            .atIndex(2)
+            .join(
+                testQuestionBank
+                    .applicantHouseholdMemberJobs()
+                    .getQuestionDefinition()
+                    .getQuestionPathSegment());
+    applicantData.putString(
+        deepEnumerationPath.atIndex(0).join(Scalar.ENTITY_NAME), "nested first job");
+    applicantData.putString(
+        deepEnumerationPath.atIndex(1).join(Scalar.ENTITY_NAME), "nested second job");
+
+    ReadOnlyApplicantProgramService service =
+        new ReadOnlyApplicantProgramServiceImpl(applicantData, programDefinition, FAKE_BASE_URL);
+
+    ImmutableList<Block> blocks = service.getAllActiveBlocks();
+    System.out.print(blocks);
+
+    assertThat(blocks).hasSize(11);
+
+    // Answer predicate question so that the enum should no longer be visible
+    answerColorQuestion(program.id(), "blue");
+    blocks = service.getAllActiveBlocks();
+
+    assertThat(blocks).hasSize(1);
+  }
+
+  @Test
   public void getAllBlocks_includesBlockWithStaticEvenWhenOthersAreAnswered() {
     ProgramDefinition program =
         ProgramBuilder.newActiveProgram()
