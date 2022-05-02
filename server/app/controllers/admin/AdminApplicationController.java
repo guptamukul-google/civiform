@@ -7,6 +7,7 @@ import auth.ProfileUtils;
 import com.google.common.collect.ImmutableList;
 import controllers.CiviFormController;
 import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
 import javax.inject.Inject;
@@ -79,7 +80,7 @@ public class AdminApplicationController extends CiviFormController {
       return unauthorized();
     }
 
-    String filename = String.format("%s-%s.json", program.adminName(), clock.instant().toString());
+    String filename = String.format("%s-%s.json", program.adminName(), LocalDateTime.now(clock).toString());
     String json = jsonExporter.export(program);
 
     return ok(json)
@@ -93,7 +94,7 @@ public class AdminApplicationController extends CiviFormController {
     try {
       ProgramDefinition program = programService.getProgramDefinition(programId);
       checkProgramAdminAuthorization(profileUtils, request, program.adminName()).join();
-      String filename = String.format("%s-%s.csv", program.adminName(), clock.instant().toString());
+      String filename = String.format("%s-%s.csv", program.adminName(), LocalDateTime.now(clock).toString());
       String csv = exporterService.getProgramAllVersionsCsv(programId);
       return ok(csv)
           .as(Http.MimeTypes.BINARY)
@@ -115,7 +116,7 @@ public class AdminApplicationController extends CiviFormController {
     try {
       ProgramDefinition program = programService.getProgramDefinition(programId);
       checkProgramAdminAuthorization(profileUtils, request, program.adminName()).join();
-      String filename = String.format("%s-%s.csv", program.adminName(), clock.instant().toString());
+      String filename = String.format("%s-%s.csv", program.adminName(), LocalDateTime.now(clock).toString());
       String csv = exporterService.getProgramCsv(programId);
       return ok(csv)
           .as(Http.MimeTypes.BINARY)
@@ -135,7 +136,7 @@ public class AdminApplicationController extends CiviFormController {
    */
   @Secure(authorizers = Authorizers.Labels.CIVIFORM_ADMIN)
   public Result downloadDemographics() {
-    String filename = String.format("demographics-%s.csv", clock.instant().toString());
+    String filename = String.format("demographics-%s.csv", LocalDateTime.now(clock).toString());
     String csv = exporterService.getDemographicsCsv();
     return ok(csv)
         .as(Http.MimeTypes.BINARY)
