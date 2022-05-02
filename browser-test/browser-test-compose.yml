@@ -63,5 +63,6 @@ services:
       - AZURE_STORAGE_ACCOUNT_NAME
       - AZURE_STORAGE_ACCOUNT_CONTAINER
       - STORAGE_SERVICE_NAME
+      - JAVA_TIME_ZONE_ID
 
     command: ~run -Dconfig.file=conf/application.dev.conf
