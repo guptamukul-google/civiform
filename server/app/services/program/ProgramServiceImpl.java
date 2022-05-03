@@ -105,6 +105,11 @@ public class ProgramServiceImpl implements ProgramService {
   }
 
   @Override
+  public ImmutableList<String> getAllProgramSlugs() {
+    return programRepository.getAllSlugs();
+  }
+
+  @Override
   public ErrorAnd<ProgramDefinition, CiviFormError> createProgramDefinition(
       String adminName,
       String adminDescription,
