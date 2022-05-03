@@ -21,7 +21,7 @@ function terraform::perform_apply() {
       -upgrade \
       -backend-config="${BACKEND_VARS_FILENAME}"
   fi
-  
+
   terraform \
     -chdir="${TERRAFORM_TEMPLATE_DIR}" \
     apply \
@@ -29,12 +29,12 @@ function terraform::perform_apply() {
 }
 
 #######################################
-# Copies the terraform backend_override to backend_override.tf (used to 
+# Copies the terraform backend_override to backend_override.tf (used to
 # make backend local instead of a shared state for dev deploys)
 # Globals:
 #   TERRAFORM_TEMPLATE_DIR
 #######################################
 function terraform::copy_override() {
-    cp "${TERRAFORM_TEMPLATE_DIR}/backend_override" \
-      "${TERRAFORM_TEMPLATE_DIR}/backend_override.tf"
+  cp "${TERRAFORM_TEMPLATE_DIR}/backend_override" \
+    "${TERRAFORM_TEMPLATE_DIR}/backend_override.tf"
 }
